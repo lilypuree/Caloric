@@ -10,8 +10,13 @@ import net.minecraftforge.common.util.LazyOptional;
 
 public class ChimneyTile extends TileEntity implements ITickableTileEntity, GasFlowable {
 
-    private LazyOptional<HeatedGasChannel> chimneyChannel = LazyOptional.of();
+//    private LazyOptional<HeatedGasChannel> chimneyChannel = LazyOptional.of();
 
+
+    public ChimneyTile(TileEntityType<?> tileEntityTypeIn, boolean fireboxConnected) {
+        super(tileEntityTypeIn);
+        this.fireboxConnected = fireboxConnected;
+    }
 
     boolean fireboxConnected = false;
 

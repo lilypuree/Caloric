@@ -97,14 +97,6 @@ public class FireboxTile extends GasSenderTile implements ITickableTileEntity, G
         outputChannel.ifPresent(channel -> channel.insertHeatedGas(outputGas));
     }
 
-    public void setNaturalDraft(float draft) {
-        this.naturalDraft = draft;
-        if(draft >= 0){
-            this.secondaryDraft = draft * secondaryAirRatio;
-            this.primaryDraft = draft - secondaryDraft;
-        }
-    }
-
     @Override
     public boolean isConnectedToSource() {
         return true;
@@ -158,10 +150,7 @@ public class FireboxTile extends GasSenderTile implements ITickableTileEntity, G
             return;
         }
         if (side == outputDir) {
-            if (isAirOnSide(side)) {
-                createAirTileEntity(side);
-            }
-            cacheCapabilityForSide(side);
+            setupSide(side);
             if(outputChannel.isPresent()){
                 TileEntity tileEntity = world.getTileEntity(offsetPos);
                 ((GasFlowable)tileEntity).connectSourceFrom(pos);
@@ -169,21 +158,17 @@ public class FireboxTile extends GasSenderTile implements ITickableTileEntity, G
                 sendDraftInfo(-1);
             }
         }
-        if (side == primaryAirInputDir) {
-            if (isAirOnSide(side)) {
-                createAirTileEntity(side);
-            }
-            cacheCapabilityForSide(side);
-        }
-        if (primaryAirInputDir != secondaryAirInputDir && side == secondaryAirInputDir) {
-            if (isAirOnSide(side)) {
-                createAirTileEntity(side);
-            }
-            cacheCapabilityForSide(side);
+        if (side == primaryAirInputDir || side == secondaryAirInputDir) {
+            setupSide(side);
         }
     }
 
-    private cacheOrCreateCapabilityForSide()
+    private void setupSide(Direction side){
+        if (isAirOnSide(side)) {
+            createAirTileEntity(side);
+        }
+        cacheCapabilityForSide(side);
+    }
 
     public void cacheCapabilityForSide(Direction side) {
         if (side == outputDir) {
