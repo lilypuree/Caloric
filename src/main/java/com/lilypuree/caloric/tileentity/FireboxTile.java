@@ -171,19 +171,19 @@ public class FireboxTile extends GasSenderTile implements ITickableTileEntity, G
         }
         if (side == primaryAirInputDir) {
             if (isAirOnSide(side)) {
-//                set it to a air provider
-//                or set primaryInputchanel to an appropriate empty input
+                createAirTileEntity(side);
             }
             cacheCapabilityForSide(side);
         }
         if (primaryAirInputDir != secondaryAirInputDir && side == secondaryAirInputDir) {
             if (isAirOnSide(side)) {
-//                set it to a air provider
-//                or set primaryInputchanel to an appropriate empty input
+                createAirTileEntity(side);
             }
             cacheCapabilityForSide(side);
         }
     }
+
+    private cacheOrCreateCapabilityForSide()
 
     public void cacheCapabilityForSide(Direction side) {
         if (side == outputDir) {

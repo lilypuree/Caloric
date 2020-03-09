@@ -19,7 +19,6 @@ import javax.annotation.Nullable;
 public class FlueTile extends GasSenderTile implements ITickableTileEntity, GasFlowable {
 
     private LazyOptional<HeatedGasChannel> gasChannel = LazyOptional.of();
-    HeatedGasChannel flueChannel;
     private Direction inputDir;
     private Direction outputDir;
 
@@ -33,12 +32,9 @@ public class FlueTile extends GasSenderTile implements ITickableTileEntity, GasF
     @Override
     public void read(CompoundNBT compound) {
         super.read(compound);
-        if (compound.contains("input")) {
-            inputDir = Direction.byIndex(compound.getInt("input"));
-        }
-        if (compound.contains("output")) {
-            outputDir = Direction.byIndex(compound.getInt("output"));
-        }
+
+        inputDir = Direction.byIndex(compound.getInt("input"));
+        outputDir = Direction.byIndex(compound.getInt("output"));
         fireboxConnected = compound.getBoolean("fireboxConnected");
     }
 
@@ -52,12 +48,14 @@ public class FlueTile extends GasSenderTile implements ITickableTileEntity, GasF
 
     @Override
     public void tick() {
-        gasChannel.ifPresent(channel -> {
-            GasPacket packet = channel.getGasToSend();
-            outputChannel.ifPresent(output -> {
-                output.insertHeatedGas(packet);
+        if (fireboxConnected) {
+            gasChannel.ifPresent(channel -> {
+                GasPacket packet = channel.getGasToSend();
+                outputChannel.ifPresent(output -> {
+                    output.insertHeatedGas(packet);
+                });
             });
-        });
+        }
     }
 
     @Nonnull
@@ -80,7 +78,7 @@ public class FlueTile extends GasSenderTile implements ITickableTileEntity, GasF
 
     @Override
     public void remove() {
-        removeSourceFrom();
+        removeSourceFrom(pos);
         super.remove();
     }
 
@@ -92,7 +90,8 @@ public class FlueTile extends GasSenderTile implements ITickableTileEntity, GasF
     @Override
     public void connectSourceFrom(BlockPos sourcePos) {
         fireboxConnected = true;
-        if (!pos.offset(inputDir).equals(sourcePos)) {
+        boolean sourceIsInOutputSide = !pos.offset(inputDir).equals(sourcePos);
+        if (sourceIsInOutputSide) {
             Direction temp = outputDir;
             outputDir = inputDir;
             inputDir = temp;
@@ -104,10 +103,10 @@ public class FlueTile extends GasSenderTile implements ITickableTileEntity, GasF
     @Override
     public void removeSourceFrom(BlockPos sourcePos) {
         fireboxConnected = false;
-        outputChannel.ifPresent(channel -> {
+        if(outputChannel.isPresent()){
             TileEntity output = world.getTileEntity(pos.offset(outputDir));
             ((GasFlowable) output).removeSourceFrom(pos);
-        });
+        }
     }
 
     @Override
@@ -115,6 +114,9 @@ public class FlueTile extends GasSenderTile implements ITickableTileEntity, GasF
         gasChannel.ifPresent(channel -> channel.setDraft(draft));
         TileEntity input = world.getTileEntity(pos.offset(inputDir));
         if (inputChannel.isPresent() || input instanceof FireboxTile) {
+            //TODO
+            //change draft depending on input/output
+            //make Firebox have a heatedgaschannel or whatever
             ((GasFlowable) input).sendDraftInfo(draft);
         }
     }
